@@ -57,23 +57,51 @@ const getMonth=date=>moment(date).month();
 const getYear=date=>moment(date).year();
 const setMonthOffset=(date, offset)=>moment(date).month(getMonth(date) + offset);
 const setYearOffset=(date, offset)=>moment(date).year(getYear(date) + offset);
-const getTitleFormat=date=>moment(date).format(`MMMM YYYY`);
+const getTitleFormat=date=>moment(date).format(`MMMM`);
 const getTitleYear=date=>moment(date).format(`YYYY`);
 
+export const calendarTypes={
+  datePicker: `datePicker`,
+  rangePicker: `rangePicker`,
+  timePicker: `timePicker`,
+};
+
+const calendarTypeIsValid=type=>typeof type === `string` && Object.keys(calendarTypes).includes(type);
+const getRangeMaxLength=calendarType=>calendarType === calendarTypes.rangePicker ? 2 : 1;
+
 export class Calendar extends React.Component{
-  constructor(){
+  constructor(props){
     super();
-    const calendarMoment=getMoment();
+    const { calendarType=calendarTypes.datePicker }=props;
     this.state={
-      calendarMoment,
+      rangeMaxLength: getRangeMaxLength(calendarType),
+      ...Calendar.initialState()
+    };
+  }
+
+  static initialState(){
+    return {
+      calendarMoment: getMoment(),
       range: [],
     };
   }
 
+  onCalendarTypeChange=calendarType=>{
+    calendarTypeIsValid(calendarType) &&
+    this.setState({
+      ...Calendar.initialState(),
+      rangeMaxLength: getRangeMaxLength(calendarType)
+    });
+  };
+
+  componentWillReceiveProps=nextProps=>{
+    const { calendarType }=nextProps;
+    (calendarType && calendarType !== this.props.calendarType) && this.onCalendarTypeChange(calendarType);
+  };
+
   changeMonth=offset=>this.setState(({ calendarMoment })=>{
     return {
-      calendarMoment: setMonthOffset(calendarMoment, offset).valueOf(),
-      nextMoment: setMonthOffset(calendarMoment, offset + 1).valueOf()
+      calendarMoment: setMonthOffset(calendarMoment, offset).valueOf()
     };
   });
 
@@ -91,25 +119,26 @@ export class Calendar extends React.Component{
 
   onMonthDecrease=()=>this.changeMonth(-1);
 
-  getSortedRange=()=>{
+  get sortedRange(){
     const minToTop=(a, b)=>a > b ? 1 : 0;
     return [...this.state.range].sort(minToTop);
   };
 
   onDatePick=(date)=>{
-    const updater=prevState=>({
-      range: [
-        date,
-        ...prevState.range,
-      ].slice(0, 1)
-    });
+    const updater=prevState=>{
+      const length=prevState.range.length === 2 ? 1 : prevState.rangeMaxLength;
+      return {
+        range: [
+          date,
+          ...prevState.range,
+        ].slice(0, length)
+      };
+    };
     this.setState(updater);
   };
 
   render(){
-    const { range, calendarMoment }=this.state;
-    console.log(moment(this.getSortedRange()[0]).date(), moment(this.getSortedRange()[1]).date());
-    console.log(moment(range[0]).date(), moment(range[1]).date(), range);
+    const { calendarMoment }=this.state;
     return (
       <Wrapper>
         <Flex center>
@@ -122,11 +151,9 @@ export class Calendar extends React.Component{
           <CalendarDate>{getTitleFormat(calendarMoment)}</CalendarDate>
           <Icon onClick={this.onMonthIncrease}/>
         </Flex>
-        <div>{getTitleFormat(calendarMoment)}</div>
-        <div>{getTitleFormat(setMonthOffset(calendarMoment, 1))}</div>
         <GridRenderer
           calendarMoment={calendarMoment}
-          range={range}
+          range={this.sortedRange}
           onDatePick={this.onDatePick}
         />
       </Wrapper>
