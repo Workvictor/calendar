@@ -45,11 +45,6 @@ const Cell=styled.div`
   background-color: #f7f7f7;
   cursor: pointer;
   transition: all 150ms ease-out;
-  &:hover{
-    background-color: #d6e3de;
-    color: #ce63d1;
-    border-radius: 4px;
-  }
   &.in-range{
     background-color: #f5f5dc;
   }
@@ -61,6 +56,11 @@ const Cell=styled.div`
     background-color: #f2e3f5;
     color: #3c3b3e;
     font-weight: 700;
+  }
+  &:hover{
+    background-color: #d6e3de;
+    color: #ce63d1;
+    border-radius: 4px;
   }
 `;
 
