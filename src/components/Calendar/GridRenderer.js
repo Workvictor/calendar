@@ -44,8 +44,23 @@ const Cell=styled.div`
   align-items: center;
   background-color: #f7f7f7;
   cursor: pointer;
+  transition: all 150ms ease-out;
   &:hover{
     background-color: #d6e3de;
+    color: #ce63d1;
+    border-radius: 4px;
+  }
+  &.in-range{
+    background-color: #f5f5dc;
+  }
+  &.is-holiday{
+    background-color: #deffe4;
+  }
+  &.selected{
+    border-radius: 4px;
+    background-color: #f2e3f5;
+    color: #3c3b3e;
+    font-weight: 700;
   }
 `;
 
@@ -53,16 +68,35 @@ export const GridRenderer=props=>{
   const { calendarMoment, range }=props;
   const daysInMonth=moment(calendarMoment).daysInMonth();
   const startWeekDay=moment(calendarMoment).date(1).day();
-  const prevDays=new Array((grid.cols.length - 1) - startWeekDay).fill(null);
+  const prevDays=new Array((startWeekDay || grid.cols.length) - 1).fill(null);
   const days=[
     ...prevDays,
     ...new Array(daysInMonth).fill(0).map(getIdPlus)
   ].reverse();
+
   const onClick=day=>{
     const { onDatePick }=props;
     const date=moment(calendarMoment).date(day).valueOf();
     onDatePick && onDatePick(date);
   };
+
+  const getClassName=day=>{
+    const holidays=[0,6];
+    const date=moment(calendarMoment).date(day).valueOf();
+    const weekDay=moment(calendarMoment).date(day).day();
+    const selected=date === range[0] || (range.length === 2 && date === range[1]);
+    const inRange=range.length === 2 && (date >= range[0] && date <= range[1]);
+    const isHoliday=holidays.includes(weekDay);
+    const classList=[];
+    selected && classList.push(`selected`);
+    inRange && classList.push(`in-range`);
+    return [
+      ...selected && [`selected`],
+      ...inRange && [`in-range`],
+      ...isHoliday && [`is-holiday`]
+    ].reduce((acc, cur, id)=>acc.concat(id===1?` `:``).concat(cur),``);
+  };
+
   return (
     <Wrapper>
       {
@@ -74,6 +108,7 @@ export const GridRenderer=props=>{
                 return (
                   <Cell
                     key={col}
+                    className={day && getClassName(day)}
                     onClick={()=>day && onClick(day)}
                   >
                     {day}
