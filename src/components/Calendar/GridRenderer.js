@@ -45,11 +45,11 @@ const Cell=styled.div`
   background-color: #f7f7f7;
   cursor: pointer;
   transition: all 150ms ease-out;
-  &.in-range{
-    background-color: #f5f5dc;
-  }
   &.is-holiday{
     background-color: #deffe4;
+  }
+  &.in-range{
+    background-color: #f5f5dc;
   }
   &.selected{
     border-radius: 4px;
